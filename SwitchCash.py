@@ -1,13 +1,28 @@
 import requests
 
-
 API_KEY = "49c58e15ae044fbe9bea30cae91e81d1"
 API_URL = f"https://api.currencyfreaks.com/v2.0/rates/latest?apikey={API_KEY}"
+
+
+def fetch_currency_symbols():
+    try:
+        response = requests.get(API_URL)
+        response.raise_for_status()
+        data = response.json()
+        rates = data.get("rates", {})
+        return {code: f"Currency {code}" for code in list(rates.keys())[:20]}  
+    except requests.exceptions.RequestException as e:
+        raise Exception("Gagal mengambil data simbol mata uang. Periksa koneksi atau API key.") from e
+
+def display_currency_options(currency_symbols):
+    print("Daftar Mata Uang yang Tersedia:")
+    for code, name in currency_symbols.items():
+        print(f"{code}: {name}")
 
 def convert_currency(amount: float, from_currency: str, to_currency: str) -> float:
     try:
         response = requests.get(API_URL)
-        response.raise_for_status()  
+        response.raise_for_status()
         data = response.json()
         rates = data.get("rates", {})
 
@@ -17,11 +32,10 @@ def convert_currency(amount: float, from_currency: str, to_currency: str) -> flo
         from_rate = float(rates[from_currency])
         to_rate = float(rates[to_currency])
 
-
         if from_currency != "USD":
             amount = amount / from_rate
 
-        converted_amount = amount * to_rate  
+        converted_amount = amount * to_rate
 
         print(f"\nKurs {from_currency} → USD: {from_rate}")
         print(f"Kurs USD → {to_currency}: {to_rate}")
@@ -30,12 +44,12 @@ def convert_currency(amount: float, from_currency: str, to_currency: str) -> flo
     except requests.exceptions.RequestException as e:
         raise Exception("Gagal mengambil data kurs. Periksa koneksi atau API key.") from e
 
-
 try:
-    amount = float(input("Masukkan jumlah uang: "))
+    currency_symbols = fetch_currency_symbols()
+    display_currency_options(currency_symbols)  
+    amount = float(input("\nMasukkan jumlah uang: "))
     from_currency = input("Dari mata uang (contoh: IDR): ").upper()
     to_currency = input("Ke mata uang (contoh: USD): ").upper()
-
 
     hasil = convert_currency(amount, from_currency, to_currency)
     print(f"\nHasil konversi: {hasil:.2f} {to_currency}")
