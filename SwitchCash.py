@@ -1,16 +1,16 @@
 import requests
 
 API_KEY = "49c58e15ae044fbe9bea30cae91e81d1"
-API_URL = f"https://api.currencyfreaks.com/v2.0/rates/latest?apikey={API_KEY}"
-
+RATES_URL = f"https://api.currencyfreaks.com/v2.0/rates/latest?apikey={API_KEY}"
+SYMBOLS_URL = f"https://api.currencyfreaks.com/v2.0/currency-symbols"
 
 def fetch_currency_symbols():
     try:
-        response = requests.get(API_URL)
+        response = requests.get(SYMBOLS_URL)
         response.raise_for_status()
         data = response.json()
-        rates = data.get("rates", {})
-        return {code: f"Currency {code}" for code in list(rates.keys())[:20]}  
+        currency_symbols = data.get("currencySymbols", {})
+        return {code: name for code, name in list(currency_symbols.items())[:20]}  
     except requests.exceptions.RequestException as e:
         raise Exception("Gagal mengambil data simbol mata uang. Periksa koneksi atau API key.") from e
 
@@ -21,7 +21,7 @@ def display_currency_options(currency_symbols):
 
 def convert_currency(amount: float, from_currency: str, to_currency: str) -> float:
     try:
-        response = requests.get(API_URL)
+        response = requests.get(RATES_URL)
         response.raise_for_status()
         data = response.json()
         rates = data.get("rates", {})
@@ -48,8 +48,8 @@ try:
     currency_symbols = fetch_currency_symbols()
     display_currency_options(currency_symbols)  
     amount = float(input("\nMasukkan jumlah uang: "))
-    from_currency = input("Dari mata uang (contoh: IDR): ").upper()
-    to_currency = input("Ke mata uang (contoh: USD): ").upper()
+    from_currency = input("Dari mata uang: ").upper()
+    to_currency = input("Ke mata uang: ").upper()
 
     hasil = convert_currency(amount, from_currency, to_currency)
     print(f"\nHasil konversi: {hasil:.2f} {to_currency}")
