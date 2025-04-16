@@ -26,18 +26,25 @@ class _ListScreenState extends State<ListScreen> {
             if (response is Map<String, dynamic> &&
                 response.containsKey('rates')) {
               final rates = response['rates'];
+              final base = response['base']; 
               if (rates is Map<String, dynamic>) {
                 final sortedKeys = rates.keys.toList()..sort();
 
-                return ListView.builder(
+                return ListView(
                   padding: const EdgeInsets.all(16),
-                  itemCount: sortedKeys.length,
-                  itemBuilder: (context, index) {
-                    final key = sortedKeys[index];
-                    final value = rates[key];
-                    return Text('$key: $value',
-                        style: const TextStyle(fontSize: 16));
-                  },
+                  children: [
+                    Text('Base Currency: $base',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.normal)),
+                    const SizedBox(
+                        height:
+                            16), 
+                    ...sortedKeys.map((key) {
+                      final value = rates[key];
+                      return Text('$key: $value',
+                          style: const TextStyle(fontSize: 16));
+                    }).toList(),
+                  ],
                 );
               } else {
                 return const Center(
