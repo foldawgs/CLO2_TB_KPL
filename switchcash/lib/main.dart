@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:switchcash/screens/history_screens.dart';
 import 'package:switchcash/screens/home_screens.dart';
+import 'package:switchcash/screens/list_screen.dart';
 
 void main() => runApp( MyApp());
 
@@ -29,6 +30,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _screens = [
     HomeScreens(),
     HistoryScreens(),
+    ListScreen(),
   ];
 
 
@@ -52,6 +54,10 @@ class _MainPageState extends State<MainPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
             label: 'History',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: 'List',
           ),
         ],
       ),
