@@ -9,12 +9,36 @@ class ListScreen extends StatefulWidget {
 }
 
 class _ListScreenState extends State<ListScreen> {
+  late Future<Map<String, dynamic>> _futureRates;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureRates = CurrencyApi().getCurrencyRates();
+  }
+
+  void _refreshRates() {
+    setState(() {
+      _futureRates = CurrencyApi().getCurrencyRates();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Currency Rates')),
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
+        title: const Text('Currency Rates'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshRates,
+          ),
+        ],
+      ),
       body: FutureBuilder(
-        future: CurrencyApi().getCurrencyRates(),
+        future: _futureRates,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -26,7 +50,7 @@ class _ListScreenState extends State<ListScreen> {
             if (response is Map<String, dynamic> &&
                 response.containsKey('rates')) {
               final rates = response['rates'];
-              final base = response['base']; 
+              final base = response['base'];
               if (rates is Map<String, dynamic>) {
                 final sortedKeys = rates.keys.toList()..sort();
 
@@ -36,9 +60,7 @@ class _ListScreenState extends State<ListScreen> {
                     Text('Base Currency: $base',
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.normal)),
-                    const SizedBox(
-                        height:
-                            16), 
+                    const SizedBox(height: 16),
                     ...sortedKeys.map((key) {
                       final value = rates[key];
                       return Text('$key: $value',

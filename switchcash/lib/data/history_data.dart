@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HistoryData {
@@ -23,4 +23,13 @@ class HistoryData {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove(historyKey); 
   }
+
+  static Future<void> removeHistoryAt(int index) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  List<String> history = prefs.getStringList(historyKey) ?? [];
+  if (index >= 0 && index < history.length) {
+    history.removeAt(index);
+    await prefs.setStringList(historyKey, history);
+  }
+}
 }
