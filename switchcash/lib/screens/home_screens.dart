@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:switchcash/api/currency_api.dart';
 import 'package:switchcash/data/history_data.dart';
+import 'package:switchcash/data/currency_list.dart';
 import 'package:switchcash/models/currecy_model.dart';
 import 'package:switchcash/widgets/costum_button.dart';
 
@@ -12,16 +14,18 @@ class HomeScreens extends StatefulWidget {
 }
 
 class _HomeScreensState extends State<HomeScreens> {
-  final TextEditingController _baseCurrencyController = TextEditingController();
-  final TextEditingController _targetCurrencyController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
   String result = '';
   List<String> history = [];
+
+  String? _selectedBaseCurrency;
+  String? _selectedTargetCurrency;
 
   @override
   void initState() {
     super.initState();
     _loadHistory();
+    _amountController.addListener(_formatAmount);
   }
 
   Future<void> _loadHistory() async {
@@ -31,9 +35,26 @@ class _HomeScreensState extends State<HomeScreens> {
     });
   }
 
+  void _formatAmount() {
+    String text = _amountController.text;
+    // Remove any non-numeric characters
+    text = text.replaceAll(RegExp(r'[^0-9]'), '');
+    // If the text is empty or just a number, format it
+    if (text.isNotEmpty) {
+      String formattedText = NumberFormat('#,###').format(int.parse(text));
+      // Only update if the text is different to avoid the cursor jumping
+      if (_amountController.text != formattedText) {
+        _amountController.value = _amountController.value.copyWith(
+          text: formattedText,
+          selection: TextSelection.collapsed(offset: formattedText.length),
+        );
+      }
+    }
+  }
+
   Future<void> _convertCurrency() async {
-    if (_baseCurrencyController.text.isEmpty ||
-        _targetCurrencyController.text.isEmpty ||
+    if (_selectedBaseCurrency == null ||
+        _selectedTargetCurrency == null ||
         _amountController.text.isEmpty) {
       setState(() {
         result = 'Please fill in all fields!';
@@ -41,27 +62,30 @@ class _HomeScreensState extends State<HomeScreens> {
       return;
     }
 
-    String baseCurrency = _baseCurrencyController.text.toUpperCase();
-    String targetCurrency = _targetCurrencyController.text.toUpperCase();
-    double amount = double.tryParse(_amountController.text) ?? 0.0;
+    String baseCurrency = _selectedBaseCurrency!;
+    String targetCurrency = _selectedTargetCurrency!;
+    // Remove formatting and parse the number as it would be sent to the API
+    double amount = double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0.0;
 
     try {
       CurrencyApi api = CurrencyApi();
       Map<String, dynamic> responseData = await api.getCurrencyRates();
       CurrencyModel currencyData = CurrencyModel.fromJson(responseData);
 
-      if (currencyData.rates.containsKey(baseCurrency) && currencyData.rates.containsKey(targetCurrency)) {
-        double fromRate = double.parse(currencyData.rates[baseCurrency].toString());
-        double toRate = double.parse(currencyData.rates[targetCurrency].toString());
+      if (currencyData.rates.containsKey(baseCurrency) &&
+          currencyData.rates.containsKey(targetCurrency)) {
+        double fromRate =
+            double.parse(currencyData.rates[baseCurrency].toString());
+        double toRate =
+            double.parse(currencyData.rates[targetCurrency].toString());
 
- 
         double amountInUSD = amount / fromRate;
         double convertedAmount = amountInUSD * toRate;
 
         setState(() {
-          result = '$amount $baseCurrency equals $convertedAmount $targetCurrency';
+          result =
+              '$amount $baseCurrency equals $convertedAmount $targetCurrency';
         });
-
 
         await _saveToHistory(result);
       } else {
@@ -80,14 +104,13 @@ class _HomeScreensState extends State<HomeScreens> {
     await HistoryData.saveHistory(entry);
     List<String> updatedHistory = await HistoryData.getHistory();
     setState(() {
-      history = updatedHistory; 
+      history = updatedHistory;
     });
   }
 
   @override
   void dispose() {
-    _baseCurrencyController.dispose();
-    _targetCurrencyController.dispose();
+    _amountController.removeListener(_formatAmount);
     _amountController.dispose();
     super.dispose();
   }
@@ -103,25 +126,51 @@ class _HomeScreensState extends State<HomeScreens> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CustomTextBox(
-              hintText: 'Masukan Currency yang akan di convert',
-              controller: _baseCurrencyController,
-              isPassword: false,
-              keyboardType: TextInputType.text,
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(
+                labelText: 'Currency asal',
+                border: OutlineInputBorder(),
+              ),
+              value: _selectedBaseCurrency,
+              items: currencyList.map((String currency) {
+                return DropdownMenuItem<String>(
+                  value: currency,
+                  child: Text(currency),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedBaseCurrency = value;
+                });
+              },
             ),
             const SizedBox(height: 10),
-            CustomTextBox(
-              hintText: 'Masukan Currency target',
-              controller: _targetCurrencyController,
-              isPassword: false,
-              keyboardType: TextInputType.text,
+            DropdownButtonFormField<String>(
+              decoration: const InputDecoration(
+                labelText: 'Currency tujuan',
+                border: OutlineInputBorder(),
+              ),
+              value: _selectedTargetCurrency,
+              items: currencyList.map((String currency) {
+                return DropdownMenuItem<String>(
+                  value: currency,
+                  child: Text(currency),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedTargetCurrency = value;
+                });
+              },
             ),
             const SizedBox(height: 10),
-            CustomTextBox(
-              hintText: 'Enter amount',
+            TextField(
               controller: _amountController,
-              isPassword: false,
               keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Masukan Jumlah',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 20),
             Center(
@@ -131,9 +180,26 @@ class _HomeScreensState extends State<HomeScreens> {
               ),
             ),
             const SizedBox(height: 20),
-            Text(
-              result,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Center(
+              child: Column(
+              children: [
+                Text(
+                'Result:',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                ),
+                Text(
+                result,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                ),
+              ],
+              ),
             ),
           ],
         ),
