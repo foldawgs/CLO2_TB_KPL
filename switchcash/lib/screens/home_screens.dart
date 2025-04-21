@@ -7,7 +7,6 @@ import 'package:switchcash/data/currency_names.dart';
 import 'package:switchcash/models/currecy_model.dart';
 import 'package:switchcash/widgets/costum_button.dart';
 
-
 class HomeScreens extends StatefulWidget {
   const HomeScreens({Key? key}) : super(key: key);
 
@@ -103,6 +102,74 @@ class _HomeScreensState extends State<HomeScreens> {
     });
   }
 
+  Future<void> _showCurrencyPicker({
+    required String label,
+    required String? selectedValue,
+    required Function(String) onSelected,
+  }) async {
+    TextEditingController searchController = TextEditingController();
+    List<String> filteredList = currencyList;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: searchController,
+                    decoration: InputDecoration(
+                      labelText: "Cari $label",
+                      prefixIcon: const Icon(Icons.search),
+                      border: const OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        filteredList = currencyList
+                            .where((item) =>
+                                item.toLowerCase().contains(value.toLowerCase()))
+                            .toList();
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 300,
+                    child: ListView.builder(
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        final currency = filteredList[index];
+                        return ListTile(
+                          title: Text(currency),
+                          subtitle: Text(
+                            currencyNames[currency] ?? 'Unknown Currency',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          trailing: selectedValue == currency
+                              ? const Icon(Icons.check, color: Colors.green)
+                              : null,
+                          onTap: () {
+                            Navigator.pop(context);
+                            onSelected(currency);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
+      },
+    );
+  }
+
   @override
   void dispose() {
     _amountController.removeListener(_formatAmount);
@@ -112,7 +179,6 @@ class _HomeScreensState extends State<HomeScreens> {
 
   @override
   Widget build(BuildContext context) {
-    final double width = MediaQuery.of(context).size.width - 32;
 
     return Scaffold(
       appBar: AppBar(
@@ -123,23 +189,27 @@ class _HomeScreensState extends State<HomeScreens> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // asal currency
-            DropdownMenu<String>(
-              initialSelection: _selectedBaseCurrency,
-              enableFilter: true,
-              requestFocusOnTap: true,
-              width: width,
-              menuHeight: 250, // Batasi tinggi dropdown
-              hintText: _selectedBaseCurrency == null ? "Ketik untuk cari" : null,
-              label: const Text('Currency asal'),
-              onSelected: (value) {
-                setState(() {
-                  _selectedBaseCurrency = value;
-                });
-              },
-              dropdownMenuEntries: currencyList
-                  .map((currency) => DropdownMenuEntry(value: currency, label: currency))
-                  .toList(),
+            // Currency asal
+            GestureDetector(
+              onTap: () => _showCurrencyPicker(
+                label: "Currency asal",
+                selectedValue: _selectedBaseCurrency,
+                onSelected: (value) {
+                  setState(() {
+                    _selectedBaseCurrency = value;
+                  });
+                },
+              ),
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: "Currency asal",
+                  border: OutlineInputBorder(),
+                ),
+                child: Text(
+                  _selectedBaseCurrency ?? 'Pilih currency asal',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 4, bottom: 10),
@@ -148,23 +218,28 @@ class _HomeScreensState extends State<HomeScreens> {
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ),
-            // target currency
-            DropdownMenu<String>(
-              initialSelection: _selectedTargetCurrency,
-              enableFilter: true,
-              requestFocusOnTap: true,
-              width: width,
-              menuHeight: 250,
-              hintText: _selectedTargetCurrency == null ? "Ketik untuk cari" : null,
-              label: const Text('Currency tujuan'),
-              onSelected: (value) {
-                setState(() {
-                  _selectedTargetCurrency = value;
-                });
-              },
-              dropdownMenuEntries: currencyList
-                  .map((currency) => DropdownMenuEntry(value: currency, label: currency))
-                  .toList(),
+
+            // Currency tujuan
+            GestureDetector(
+              onTap: () => _showCurrencyPicker(
+                label: "Currency tujuan",
+                selectedValue: _selectedTargetCurrency,
+                onSelected: (value) {
+                  setState(() {
+                    _selectedTargetCurrency = value;
+                  });
+                },
+              ),
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: "Currency tujuan",
+                  border: OutlineInputBorder(),
+                ),
+                child: Text(
+                  _selectedTargetCurrency ?? 'Pilih currency tujuan',
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 4, bottom: 10),
@@ -173,6 +248,8 @@ class _HomeScreensState extends State<HomeScreens> {
                 style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
             ),
+
+            // Input amount
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
@@ -181,6 +258,7 @@ class _HomeScreensState extends State<HomeScreens> {
                 border: OutlineInputBorder(),
               ),
             ),
+
             const SizedBox(height: 20),
             Center(
               child: CustomButton(
