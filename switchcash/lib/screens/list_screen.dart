@@ -10,6 +10,8 @@ class ListScreen extends StatefulWidget {
 
 class _ListScreenState extends State<ListScreen> {
   late Future<Map<String, dynamic>> _futureRates;
+  String _searchQuery = '';
+  int _visibleItemCount = 50; // awalnya 50 item dulu biar enteng
 
   @override
   void initState() {
@@ -20,6 +22,13 @@ class _ListScreenState extends State<ListScreen> {
   void _refreshRates() {
     setState(() {
       _futureRates = CurrencyApi().getCurrencyRates();
+      _visibleItemCount = 50; // reset jumlah saat refresh
+    });
+  }
+
+  void _loadMore() {
+    setState(() {
+      _visibleItemCount += 50; // tambah 50 item lagi tiap klik
     });
   }
 
@@ -37,7 +46,7 @@ class _ListScreenState extends State<ListScreen> {
           ),
         ],
       ),
-      body: FutureBuilder(
+      body: FutureBuilder<Map<String, dynamic>>(
         future: _futureRates,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -45,36 +54,78 @@ class _ListScreenState extends State<ListScreen> {
           } else if (snapshot.hasError) {
             return Center(child: Text("Error: ${snapshot.error}"));
           } else if (snapshot.hasData) {
-            final response = snapshot.data;
+            final data = snapshot.data!;
+            final base = data['base'];
+            final date = data['date'];
+            final rates = Map<String, dynamic>.from(data['rates']);
+            final sortedKeys = rates.keys.toList()..sort();
 
-            if (response is Map<String, dynamic> &&
-                response.containsKey('rates')) {
-              final rates = response['rates'];
-              final base = response['base'];
-              if (rates is Map<String, dynamic>) {
-                final sortedKeys = rates.keys.toList()..sort();
+            final filteredKeys = sortedKeys
+                .where((key) => key.toLowerCase().contains(_searchQuery.toLowerCase()))
+                .toList();
 
-                return ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Text('Base Currency: $base',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.normal)),
-                    const SizedBox(height: 16),
-                    ...sortedKeys.map((key) {
-                      final value = rates[key];
-                      return Text('$key: $value',
-                          style: const TextStyle(fontSize: 16));
-                    }).toList(),
-                  ],
-                );
-              } else {
-                return const Center(
-                    child: Text("Rates data is not a valid map"));
-              }
-            } else {
-              return const Center(child: Text("Rates data not available"));
-            }
+            final visibleKeys = filteredKeys.take(_visibleItemCount).toList();
+            final hasMore = _visibleItemCount < filteredKeys.length;
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Text('Date: $date', style: const TextStyle(fontSize: 16)),
+                  const SizedBox(height: 4),
+                  Text('Base Currency: $base', style: const TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'Search Currency',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                        _visibleItemCount = 50;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: visibleKeys.length + (hasMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index < visibleKeys.length) {
+                          final key = visibleKeys[index];
+                          final value = rates[key];
+                          final formattedValue = double.tryParse(value.toString())
+                                  ?.toStringAsFixed(4) ??
+                              value.toString();
+                          return Card(
+                            elevation: 3,
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            child: ListTile(
+                              leading: const Icon(Icons.monetization_on_outlined),
+                              title: Text(key),
+                              trailing: Text(formattedValue),
+                            ),
+                          );
+                        } else {
+                          // Tombol load more
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Center(
+                              child: ElevatedButton(
+                                onPressed: _loadMore,
+                                child: const Text('Load More'),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
           } else {
             return const Center(child: Text("No data found."));
           }
