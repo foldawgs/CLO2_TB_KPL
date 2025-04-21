@@ -3,8 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:switchcash/api/currency_api.dart';
 import 'package:switchcash/data/history_data.dart';
 import 'package:switchcash/data/currency_list.dart';
+import 'package:switchcash/data/currency_names.dart';
 import 'package:switchcash/models/currecy_model.dart';
 import 'package:switchcash/widgets/costum_button.dart';
+
 
 class HomeScreens extends StatefulWidget {
   const HomeScreens({Key? key}) : super(key: key);
@@ -37,12 +39,9 @@ class _HomeScreensState extends State<HomeScreens> {
 
   void _formatAmount() {
     String text = _amountController.text;
-    // Remove any non-numeric characters
     text = text.replaceAll(RegExp(r'[^0-9]'), '');
-    // If the text is empty or just a number, format it
     if (text.isNotEmpty) {
       String formattedText = NumberFormat('#,###').format(int.parse(text));
-      // Only update if the text is different to avoid the cursor jumping
       if (_amountController.text != formattedText) {
         _amountController.value = _amountController.value.copyWith(
           text: formattedText,
@@ -64,7 +63,6 @@ class _HomeScreensState extends State<HomeScreens> {
 
     String baseCurrency = _selectedBaseCurrency!;
     String targetCurrency = _selectedTargetCurrency!;
-    // Remove formatting and parse the number as it would be sent to the API
     double amount = double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0.0;
 
     try {
@@ -74,17 +72,14 @@ class _HomeScreensState extends State<HomeScreens> {
 
       if (currencyData.rates.containsKey(baseCurrency) &&
           currencyData.rates.containsKey(targetCurrency)) {
-        double fromRate =
-            double.parse(currencyData.rates[baseCurrency].toString());
-        double toRate =
-            double.parse(currencyData.rates[targetCurrency].toString());
+        double fromRate = double.parse(currencyData.rates[baseCurrency].toString());
+        double toRate = double.parse(currencyData.rates[targetCurrency].toString());
 
         double amountInUSD = amount / fromRate;
         double convertedAmount = amountInUSD * toRate;
 
         setState(() {
-          result =
-              '$amount $baseCurrency equals $convertedAmount $targetCurrency';
+          result = '$amount $baseCurrency equals ${convertedAmount.toStringAsFixed(2)} $targetCurrency';
         });
 
         await _saveToHistory(result);
@@ -117,6 +112,8 @@ class _HomeScreensState extends State<HomeScreens> {
 
   @override
   Widget build(BuildContext context) {
+    final double width = MediaQuery.of(context).size.width - 32;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Switch Cash'),
@@ -126,49 +123,61 @@ class _HomeScreensState extends State<HomeScreens> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Currency asal',
-                border: OutlineInputBorder(),
-              ),
-              value: _selectedBaseCurrency,
-              items: currencyList.map((String currency) {
-                return DropdownMenuItem<String>(
-                  value: currency,
-                  child: Text(currency),
-                );
-              }).toList(),
-              onChanged: (value) {
+            // asal currency
+            DropdownMenu<String>(
+              initialSelection: _selectedBaseCurrency,
+              enableFilter: true,
+              requestFocusOnTap: true,
+              width: width,
+              menuHeight: 250, // Batasi tinggi dropdown
+              hintText: _selectedBaseCurrency == null ? "Ketik untuk cari" : null,
+              label: const Text('Currency asal'),
+              onSelected: (value) {
                 setState(() {
                   _selectedBaseCurrency = value;
                 });
               },
+              dropdownMenuEntries: currencyList
+                  .map((currency) => DropdownMenuEntry(value: currency, label: currency))
+                  .toList(),
             ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Currency tujuan',
-                border: OutlineInputBorder(),
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 10),
+              child: Text(
+                currencyNames[_selectedBaseCurrency ?? ''] ?? 'Unknown Currency',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
               ),
-              value: _selectedTargetCurrency,
-              items: currencyList.map((String currency) {
-                return DropdownMenuItem<String>(
-                  value: currency,
-                  child: Text(currency),
-                );
-              }).toList(),
-              onChanged: (value) {
+            ),
+            // target currency
+            DropdownMenu<String>(
+              initialSelection: _selectedTargetCurrency,
+              enableFilter: true,
+              requestFocusOnTap: true,
+              width: width,
+              menuHeight: 250,
+              hintText: _selectedTargetCurrency == null ? "Ketik untuk cari" : null,
+              label: const Text('Currency tujuan'),
+              onSelected: (value) {
                 setState(() {
                   _selectedTargetCurrency = value;
                 });
               },
+              dropdownMenuEntries: currencyList
+                  .map((currency) => DropdownMenuEntry(value: currency, label: currency))
+                  .toList(),
             ),
-            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 10),
+              child: Text(
+                currencyNames[_selectedTargetCurrency ?? ''] ?? 'Unknown Currency',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
+            ),
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: 'Masukan Jumlah',
+                labelText: 'Masukkan Jumlah',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -182,23 +191,20 @@ class _HomeScreensState extends State<HomeScreens> {
             const SizedBox(height: 20),
             Center(
               child: Column(
-              children: [
-                Text(
-                'Result:',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                ),
-                Text(
-                result,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-                ),
-              ],
+                children: [
+                  const Text(
+                    'Result:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    result,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ],
