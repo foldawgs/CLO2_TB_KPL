@@ -4,8 +4,8 @@ import 'package:switchcash/api/currency_api.dart';
 import 'package:switchcash/data/history_data.dart';
 import 'package:switchcash/data/currency_list.dart';
 import 'package:switchcash/data/currency_names.dart';
+import 'package:switchcash/styles/app_colors.dart';
 import 'package:switchcash/models/currecy_model.dart';
-import 'package:switchcash/widgets/costum_button.dart';
 
 class HomeScreens extends StatefulWidget {
   const HomeScreens({Key? key}) : super(key: key);
@@ -62,7 +62,8 @@ class _HomeScreensState extends State<HomeScreens> {
 
     String baseCurrency = _selectedBaseCurrency!;
     String targetCurrency = _selectedTargetCurrency!;
-    double amount = double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0.0;
+    double amount =
+        double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0.0;
 
     try {
       CurrencyApi api = CurrencyApi();
@@ -71,15 +72,20 @@ class _HomeScreensState extends State<HomeScreens> {
 
       if (currencyData.rates.containsKey(baseCurrency) &&
           currencyData.rates.containsKey(targetCurrency)) {
-        double fromRate = double.parse(currencyData.rates[baseCurrency].toString());
-        double toRate = double.parse(currencyData.rates[targetCurrency].toString());
+        double fromRate =
+            double.parse(currencyData.rates[baseCurrency].toString());
+        double toRate =
+            double.parse(currencyData.rates[targetCurrency].toString());
 
         double amountInUSD = amount / fromRate;
         double convertedAmount = amountInUSD * toRate;
 
-        setState(() {
-          result = '$amount $baseCurrency equals ${convertedAmount.toStringAsFixed(2)} $targetCurrency';
-        });
+        final formattedAmount = NumberFormat('#,###.##').format(amount);
+      final formattedConverted = NumberFormat('#,###.##').format(convertedAmount);
+
+      setState(() {
+        result = '$formattedAmount $baseCurrency = $formattedConverted $targetCurrency';
+      });
 
         await _saveToHistory(result);
       } else {
@@ -125,14 +131,19 @@ class _HomeScreensState extends State<HomeScreens> {
                     controller: searchController,
                     decoration: InputDecoration(
                       labelText: "Cari $label",
+                      
                       prefixIcon: const Icon(Icons.search),
-                      border: const OutlineInputBorder(),
+                      border: const OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8)),
+                        borderSide: BorderSide(color: AppColors.primary),
+                      ),
                     ),
                     onChanged: (value) {
                       setState(() {
                         filteredList = currencyList
-                            .where((item) =>
-                                item.toLowerCase().contains(value.toLowerCase()))
+                            .where((item) => item
+                                .toLowerCase()
+                                .contains(value.toLowerCase()))
                             .toList();
                       });
                     },
@@ -179,7 +190,6 @@ class _HomeScreensState extends State<HomeScreens> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Switch Cash'),
@@ -203,7 +213,10 @@ class _HomeScreensState extends State<HomeScreens> {
               child: InputDecorator(
                 decoration: const InputDecoration(
                   labelText: "Currency asal",
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                    borderSide: BorderSide(color: AppColors.primary),
+                  ),
                 ),
                 child: Text(
                   _selectedBaseCurrency ?? 'Pilih currency asal',
@@ -214,8 +227,9 @@ class _HomeScreensState extends State<HomeScreens> {
             Padding(
               padding: const EdgeInsets.only(top: 4, bottom: 10),
               child: Text(
-                currencyNames[_selectedBaseCurrency ?? ''] ?? 'Unknown Currency',
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                currencyNames[_selectedBaseCurrency ?? ''] ??
+                    'Unknown Currency',
+                style: const TextStyle(fontSize: 14, color: AppColors.black),
               ),
             ),
 
@@ -233,7 +247,10 @@ class _HomeScreensState extends State<HomeScreens> {
               child: InputDecorator(
                 decoration: const InputDecoration(
                   labelText: "Currency tujuan",
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                    borderSide: BorderSide(color: AppColors.primary)
+                  ),
                 ),
                 child: Text(
                   _selectedTargetCurrency ?? 'Pilih currency tujuan',
@@ -244,8 +261,9 @@ class _HomeScreensState extends State<HomeScreens> {
             Padding(
               padding: const EdgeInsets.only(top: 4, bottom: 10),
               child: Text(
-                currencyNames[_selectedTargetCurrency ?? ''] ?? 'Unknown Currency',
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
+                currencyNames[_selectedTargetCurrency ?? ''] ??
+                    'Unknown Currency',
+                style: const TextStyle(fontSize: 14, color: AppColors.black),
               ),
             ),
 
@@ -255,15 +273,34 @@ class _HomeScreensState extends State<HomeScreens> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 labelText: 'Masukkan Jumlah',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                    borderSide: BorderSide(color: AppColors.primary)
+                ),
               ),
             ),
 
             const SizedBox(height: 20),
             Center(
-              child: CustomButton(
-                text: 'Convert',
-                onPressed: _convertCurrency,
+              child: ElevatedButton(
+                onPressed: () => _convertCurrency(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: const Text(
+                  'Start',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -274,10 +311,11 @@ class _HomeScreensState extends State<HomeScreens> {
                     'Result:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
+                  const SizedBox(height: 20),
                   Text(
                     result,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
