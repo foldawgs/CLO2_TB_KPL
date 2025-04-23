@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:switchcash/api/currency_api.dart';
+import 'package:switchcash/styles/app_colors.dart';
 
 class ListScreen extends StatefulWidget {
   const ListScreen({Key? key}) : super(key: key);
@@ -11,7 +12,7 @@ class ListScreen extends StatefulWidget {
 class _ListScreenState extends State<ListScreen> {
   late Future<Map<String, dynamic>> _futureRates;
   String _searchQuery = '';
-  int _visibleItemCount = 50; // awalnya 50 item dulu biar enteng
+  int _visibleItemCount = 50;
 
   @override
   void initState() {
@@ -22,13 +23,13 @@ class _ListScreenState extends State<ListScreen> {
   void _refreshRates() {
     setState(() {
       _futureRates = CurrencyApi().getCurrencyRates();
-      _visibleItemCount = 50; // reset jumlah saat refresh
+      _visibleItemCount = 50;
     });
   }
 
   void _loadMore() {
     setState(() {
-      _visibleItemCount += 50; // tambah 50 item lagi tiap klik
+      _visibleItemCount += 50;
     });
   }
 
@@ -61,7 +62,8 @@ class _ListScreenState extends State<ListScreen> {
             final sortedKeys = rates.keys.toList()..sort();
 
             final filteredKeys = sortedKeys
-                .where((key) => key.toLowerCase().contains(_searchQuery.toLowerCase()))
+                .where((key) =>
+                    key.toLowerCase().contains(_searchQuery.toLowerCase()))
                 .toList();
 
             final visibleKeys = filteredKeys.take(_visibleItemCount).toList();
@@ -73,7 +75,8 @@ class _ListScreenState extends State<ListScreen> {
                 children: [
                   Text('Date: $date', style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 4),
-                  Text('Base Currency: $base', style: const TextStyle(fontSize: 16)),
+                  Text('Base Currency: $base',
+                      style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 16),
                   TextField(
                     decoration: const InputDecoration(
@@ -96,20 +99,28 @@ class _ListScreenState extends State<ListScreen> {
                         if (index < visibleKeys.length) {
                           final key = visibleKeys[index];
                           final value = rates[key];
-                          final formattedValue = double.tryParse(value.toString())
-                                  ?.toStringAsFixed(4) ??
-                              value.toString();
+                          final formattedValue =
+                              double.tryParse(value.toString())
+                                      ?.toStringAsFixed(4) ??
+                                  value.toString();
                           return Card(
                             elevation: 3,
                             margin: const EdgeInsets.symmetric(vertical: 6),
                             child: ListTile(
-                              leading: const Icon(Icons.monetization_on_outlined),
+                              leading: const Icon(
+                                  Icons.monetization_on_outlined,
+                                  color: AppColors.primary),
                               title: Text(key),
-                              trailing: Text(formattedValue),
+                              trailing: Text(
+                                formattedValue,
+                                style: const TextStyle(
+                                  fontSize: 15, // Bikin angka lebih gede
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           );
                         } else {
-                          // Tombol load more
                           return Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             child: Center(

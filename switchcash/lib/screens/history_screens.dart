@@ -69,7 +69,7 @@ class _HistoryScreensState extends State<HistoryScreens> {
                   ),
                   child: ListTile(
                     leading: const Icon(
-                      Icons.currency_exchange,
+                      Icons.monetization_on_outlined,
                       color: AppColors.primary,
                       size: 30,
                     ),
