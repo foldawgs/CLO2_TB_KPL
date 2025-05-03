@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:switchcash/screens/history_screens.dart';
@@ -51,6 +52,9 @@ class _MainPageState extends State<MainPage> {
         //     Colors.white.withOpacity(0.6), // faded for unselected
         currentIndex: _currentIndex,
         onTap: (index) {
+          // Play sound on tap
+          final player = AudioPlayer();
+          player.play(AssetSource('Clicking_Sound_2.mp3'));
           setState(() {
             _currentIndex = index;
           });

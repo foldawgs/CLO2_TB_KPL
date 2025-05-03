@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:switchcash/api/currency_api.dart';
@@ -6,6 +7,7 @@ import 'package:switchcash/data/currency_list.dart';
 import 'package:switchcash/data/currency_names.dart';
 import 'package:switchcash/styles/app_colors.dart';
 import 'package:switchcash/models/currecy_model.dart';
+import 'package:vibration/vibration.dart';
 
 class HomeScreens extends StatefulWidget {
   const HomeScreens({Key? key}) : super(key: key);
@@ -80,7 +82,7 @@ class _HomeScreensState extends State<HomeScreens> {
         double amountInUSD = amount / fromRate;
         double convertedAmount = amountInUSD * toRate;
 
-        final formattedAmount = NumberFormat('#,###.##').format(amount);
+      final formattedAmount = NumberFormat('#,###.##').format(amount);
       final formattedConverted = NumberFormat('#,###.##').format(convertedAmount);
 
       setState(() {
@@ -283,7 +285,12 @@ class _HomeScreensState extends State<HomeScreens> {
             const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: () => _convertCurrency(),
+                onPressed: () {
+                  final player = AudioPlayer();
+                  player.play(AssetSource('Clicking_Sound_3.mp3'));
+                  Vibration.vibrate(duration: 100);
+                  _convertCurrency();
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.black,

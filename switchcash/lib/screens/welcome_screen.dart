@@ -1,6 +1,8 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:switchcash/main.dart';
 import 'package:switchcash/styles/app_colors.dart';
+import 'package:vibration/vibration.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -53,7 +55,11 @@ class WelcomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 40),
                 ElevatedButton(
-                  onPressed: () => _navigateToMainPage(context),
+                  onPressed: () async{
+                    final player= AudioPlayer();
+                    await player.play(AssetSource('Clicking_Sound_1.mp3'));
+                    _navigateToMainPage(context);
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.black,
