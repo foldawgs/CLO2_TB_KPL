@@ -2,7 +2,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:switchcash/main.dart';
 import 'package:switchcash/styles/app_colors.dart';
-import 'package:vibration/vibration.dart';
+// import 'package:vibration/vibration.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -45,7 +45,7 @@ class WelcomeScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Selamat datang di Aplikasi\nSwitch Cash!',
+                  'Welcome to The\nSwitch Cash!',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 30,

@@ -132,7 +132,7 @@ class _HomeScreensState extends State<HomeScreens> {
                   TextField(
                     controller: searchController,
                     decoration: InputDecoration(
-                      labelText: "Cari $label",
+                      labelText: "Search $label",
                       
                       prefixIcon: const Icon(Icons.search),
                       border: const OutlineInputBorder(
@@ -201,10 +201,10 @@ class _HomeScreensState extends State<HomeScreens> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Currency asal
+            // Origin of Currency
             GestureDetector(
               onTap: () => _showCurrencyPicker(
-                label: "Currency asal",
+                label: "Origin of Currency",
                 selectedValue: _selectedBaseCurrency,
                 onSelected: (value) {
                   setState(() {
@@ -214,14 +214,14 @@ class _HomeScreensState extends State<HomeScreens> {
               ),
               child: InputDecorator(
                 decoration: const InputDecoration(
-                  labelText: "Currency asal",
+                  labelText: "Origin of Currency",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                     borderSide: BorderSide(color: AppColors.primary),
                   ),
                 ),
                 child: Text(
-                  _selectedBaseCurrency ?? 'Pilih currency asal',
+                  _selectedBaseCurrency ?? 'Select Origin of Currency',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
@@ -235,10 +235,10 @@ class _HomeScreensState extends State<HomeScreens> {
               ),
             ),
 
-            // Currency tujuan
+            // Currency Destination
             GestureDetector(
               onTap: () => _showCurrencyPicker(
-                label: "Currency tujuan",
+                label: "Currency Destination",
                 selectedValue: _selectedTargetCurrency,
                 onSelected: (value) {
                   setState(() {
@@ -248,14 +248,14 @@ class _HomeScreensState extends State<HomeScreens> {
               ),
               child: InputDecorator(
                 decoration: const InputDecoration(
-                  labelText: "Currency tujuan",
+                  labelText: "Currency Destination",
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(8)),
                     borderSide: BorderSide(color: AppColors.primary)
                   ),
                 ),
                 child: Text(
-                  _selectedTargetCurrency ?? 'Pilih currency tujuan',
+                  _selectedTargetCurrency ?? 'Select Currency Destination',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
@@ -274,7 +274,7 @@ class _HomeScreensState extends State<HomeScreens> {
               controller: _amountController,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
-                labelText: 'Masukkan Jumlah',
+                labelText: 'Input Numbers',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(8)),
                     borderSide: BorderSide(color: AppColors.primary)

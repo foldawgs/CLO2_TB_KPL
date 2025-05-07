@@ -1,0 +1,2 @@
+C:/Users/ASUS/Documents/Project/Flutter/KPL/GitHub/CLO2_TB_KPL/switchcash/android/app/.cxx/Debug/4p1s334v/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/ASUS/Documents/Project/Flutter/KPL/GitHub/CLO2_TB_KPL/switchcash/android/app/.cxx/Debug/4p1s334v/armeabi-v7a/CMakeFiles/rebuild_cache.dir
